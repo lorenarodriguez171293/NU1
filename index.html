@@ -166,14 +166,15 @@ input[type="range"], select {
   margin-top:15px;
 }
 .bar {
-  width:20px;    /* <<< ajustado */
+  width:20px;
   background:linear-gradient(180deg,#ffdd66,#ff9933);
   border-radius:6px;
   text-align:center;
   padding-bottom:4px;
   font-size:10px;
   font-weight:bold;
-  color:#222;
+  color:white; /* <<< nuevo */
+  text-shadow:0 0 4px rgba(0,0,0,0.6); /* <<< nuevo */
 }
 .labels {
   display:flex;
@@ -189,14 +190,13 @@ input[type="range"], select {
 
 <header>
   <h1>Simulador de Energía Nuclear por Fisión</h1>
-  <p>Animación, potencia y estimaciones completas</p>
 </header>
 
 <div class="container">
 
   <!-- ------------------------ ANIMACIÓN ------------------------ -->
   <div class="card">
-    <h2>Animación del proceso de fisión nuclear (U-235)</h2>
+    <h2>Fisión nuclear (U-235)</h2>
     <div class="fision-container">
 
       <div class="atom" id="atom">
