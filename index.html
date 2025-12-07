@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simulador de Energía Nuclear por Fisión</title>
+
+<style>
+/* ---------------------- ESTILO GENERAL ---------------------- */
+body {
+  margin:0;
+  background:#0a0f1c;
+  font-family:Arial, sans-serif;
+  color:#e8f1ff;
+}
+header {
+  text-align:center;
+  padding:20px;
+  background:#111d33;
+  border-bottom:1px solid #1e2f4a;
+}
+h1 { color:#ffdd66; margin:0; }
+.container {
+  max-width:1200px;
+  margin:20px auto;
+  padding:10px;
+}
+.card {
+  background:#132038;
+  border:1px solid #1e3a56;
+  border-radius:10px;
+  padding:16px;
+  box-shadow:0px 0px 10px rgba(0,0,0,0.5);
+  margin-bottom:20px;
+}
+h2 { color:#ffdd88; margin-top:0; }
+
+/* ---------------------- NUEVA ANIMACIÓN FISIÓN ---------------------- */
+.fision-container {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:260px;
+}
+
+.atom {
+  position:relative;
+  width:180px;
+  height:180px;
+  border-radius:50%;
+  background:radial-gradient(circle,#88c0ff,#2352a8);
+  box-shadow:0 0 30px rgba(80,180,255,0.5);
+  animation:fisionCore 2.6s infinite;
+}
+
+@keyframes fisionCore {
+  0% { transform:scale(1); }
+  40% { transform:scale(1.08); }
+  45% { transform:scale(0.9); background:#ffcc66; }
+  60% { transform:scale(1.12); }
+  100% { transform:scale(1); background:radial-gradient(circle,#88c0ff,#2352a8); }
+}
+
+/* neutrones iniciales */
+.neutron {
+  position:absolute;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:#ffffff;
+  box-shadow:0 0 10px #9cf;
+  animation:neutronMove 2.6s linear infinite;
+}
+
+@keyframes neutronMove {
+  0% { transform:translate(-120px,0); opacity:0.1; }
+  40% { opacity:1; }
+  100% { transform:translate(0,0); opacity:1; }
+}
+
+/* fragmentos */
+.fragment {
+  position:absolute;
+  width:35px;
+  height:35px;
+  border-radius:50%;
+  background:#ffcc66;
+  opacity:0;
+  animation:fragments 2.6s linear infinite;
+}
+@keyframes fragments {
+  0% { opacity:0; transform:translate(0,0) scale(0.4); }
+  45% { opacity:1; }
+  100% { transform:translate(140px, -40px) scale(1); opacity:1; }
+}
+
+.fragment2 {
+  position:absolute;
+  width:35px;
+  height:35px;
+  border-radius:50%;
+  background:#ffcc66;
+  opacity:0;
+  animation:fragments2 2.6s linear infinite;
+}
+@keyframes fragments2 {
+  0% { opacity:0; transform:translate(0,0) scale(0.4); }
+  45% { opacity:1; }
+  100% { transform:translate(-140px, 40px) scale(1); opacity:1; }
+}
+
+/* neutrones secundarios */
+.neutronSec {
+  position:absolute;
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  background:white;
+  box-shadow:0 0 12px #9cf;
+  opacity:0;
+  animation:neutronSpread 2.6s linear infinite;
+}
+
+@keyframes neutronSpread {
+  0% { transform:translate(0,0); opacity:0; }
+  45% { opacity:1; }
+  100% { transform:translate(180px, -20px); opacity:1; }
+}
+.neutronSec.left {
+  animation:neutronSpreadLeft 2.6s linear infinite;
+}
+
+@keyframes neutronSpreadLeft {
+  0% { transform:translate(0,0); opacity:0; }
+  45% { opacity:1; }
+  100% { transform:translate(-180px, 20px); opacity:1; }
+}
+
+/* ---------------------- CONTROLES ---------------------- */
+label { font-weight:bold; display:block; margin-top:10px; }
+input[type="range"], select {
+  width:100%;
+}
+
+/* ---------------------- MÉTRICAS ---------------------- */
+.metrics {
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+}
+.metric {
+  background:#1b2f4d;
+  padding:12px;
+  border-radius:8px;
+  text-align:center;
+}
+.metric h3 { margin:0; color:#ffe39e; }
+.metric p { margin:8px 0 0 0; font-size:18px; font-weight:bold; }
+
+/* ---------------------- GRAFICO ---------------------- */
+.chart {
+  height:220px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between; /* <<< alineación corregida */
+  margin-top:15px;
+}
+.bar {
+  width:20px;    /* <<< ajustado */
+  background:linear-gradient(180deg,#ffdd66,#ff9933);
+  border-radius:6px;
+  text-align:center;
+  padding-bottom:4px;
+  font-size:10px;
+  font-weight:bold;
+  color:#222;
+}
+.labels {
+  display:flex;
+  justify-content:space-between; /* <<< alineado */
+  margin-top:8px;
+  font-size:12px;
+  color:#aac3e0;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Simulador de Energía Nuclear por Fisión</h1>
+  <p>Animación, potencia y estimaciones completas</p>
+</header>
+
+<div class="container">
+
+  <!-- ------------------------ ANIMACIÓN ------------------------ -->
+  <div class="card">
+    <h2>Animación del proceso de fisión nuclear (U-235)</h2>
+    <div class="fision-container">
+
+      <div class="atom" id="atom">
+
+        <!-- neutrón inicial -->
+        <div class="neutron" style="top:80px; left:-10px;"></div>
+
+        <!-- fragmentos -->
+        <div class="fragment"></div>
+        <div class="fragment2"></div>
+
+        <!-- neutrones secundarios -->
+        <div class="neutronSec" style="top:90px; left:90px;"></div>
+        <div class="neutronSec left" style="top:90px; left:70px;"></div>
+
+      </div>
+
+    </div>
+
+    <!-- ------------------------ CONTROLES ------------------------ -->
+    <label>Potencia nominal por reactor (MW)</label>
+    <input type="range" id="potenciaMW" min="50" max="1600" value="700" oninput="actualizar()">
+    <span id="potMWVal">700 MW</span>
+
+    <label>Cantidad de reactores</label>
+    <select id="reactores" onchange="actualizar()">
+      <option>1</option>
+      <option>2</option>
+      <option>3</option>
+      <option>4</option>
+    </select>
+
+    <label>Factor de capacidad (%)</label>
+    <input type="range" id="capacidad" min="40" max="100" value="90" oninput="actualizar()">
+    <span id="capVal">90%</span>
+
+  </div>
+
+  <!-- ------------------------ RESULTADOS ------------------------ -->
+  <div class="card">
+    <h2>Resultados</h2>
+
+    <div class="metrics">
+      <div class="metric"><h3>Potencia instantánea</h3><p id="potInst">0 kW</p></div>
+      <div class="metric"><h3>Producción diaria</h3><p id="prodDia">0 kWh</p></div>
+      <div class="metric"><h3>Mensual</h3><p id="prodMes">0 kWh</p></div>
+      <div class="metric"><h3>Anual</h3><p id="prodAnio">0 kWh</p></div>
+      <div class="metric"><h3>CO₂ evitado</h3><p id="co2">0 t/año</p></div>
+      <div class="metric"><h3>Potencia instalada</h3><p id="pinst">0 MW</p></div>
+    </div>
+
+    <h3 style="margin-top:20px;">Gráfico mensual estimado</h3>
+    <div class="chart" id="chart"></div>
+
+    <div class="labels">
+      <span>E</span><span>F</span><span>M</span><span>A</span><span>M</span>
+      <span>J</span><span>J</span><span>A</span><span>S</span><span>O</span>
+      <span>N</span><span>D</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function format(n){ return n.toLocaleString("es-AR"); }
+
+function actualizar(){
+  let MW = Number(document.getElementById("potenciaMW").value);
+  let nReact = Number(document.getElementById("reactores").value);
+  let cap = Number(document.getElementById("capacidad").value)/100;
+
+  document.getElementById("potMWVal").innerText = MW+" MW";
+  document.getElementById("capVal").innerText = (cap*100).toFixed(0)+"%";
+
+  let potInst_kW = MW * nReact * 1000;
+  let diaria = potInst_kW * cap * 24;
+  let mensual = diaria * 30;
+  let anual = diaria * 365;
+
+  let co2_kg = anual * 0.45;
+  let co2_t = co2_kg / 1000;
+
+  document.getElementById("potInst").innerText = format(potInst_kW)+" kW";
+  document.getElementById("prodDia").innerText = format(diaria)+" kWh";
+  document.getElementById("prodMes").innerText = format(mensual)+" kWh";
+  document.getElementById("prodAnio").innerText = format(anual)+" kWh";
+  document.getElementById("co2").innerText = format(co2_t.toFixed(1))+" t/año";
+  document.getElementById("pinst").innerText = MW*nReact+" MW";
+
+  dibujarGrafico(mensual);
+}
+
+function dibujarGrafico(base){
+  const fac = [1,1,1,1,1,1,1,1,1,1,1,1];
+  const chart = document.getElementById("chart");
+  chart.innerHTML = "";
+
+  const max = base * 1.05;
+
+  for(let i=0;i<12;i++){
+    let val = base * fac[i];
+    let h = Math.max(10, (val/max)*200);
+
+    let bar = document.createElement("div");
+    bar.className = "bar";
+    bar.style.height = h+"px";
+    bar.innerText = Math.round(val/1000);
+
+    chart.appendChild(bar);
+  }
+}
+
+actualizar();
+</script>
+
+</body>
+</html>
